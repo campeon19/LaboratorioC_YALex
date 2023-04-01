@@ -1,3 +1,5 @@
+import graphviz
+
 # read slr-1.yal file and return a list of tokens
 EPSILON = 'ε'
 CONCAT = "."
@@ -11,7 +13,7 @@ RIGHT_PARENTHESIS = ")"
 OPERADORES = [EPSILON, CONCAT, UNION, STAR, QUESTION,
               PLUS, LEFT_PARENTHESIS, RIGHT_PARENTHESIS]
 
-with open("slr-1.yal", "r") as file:
+with open("slr-4.yal", "r") as file:
     content = file.read()
 
 
@@ -260,6 +262,12 @@ for key, value in newVariables.items():
         value = value.replace("'0'-'9'", numeros)
     if find3(value, "' ''\\t''\\n'"):
         value = value.replace("' ''\\t''\\n'", ' ' + '|' + '\t' + '|' + '\n')
+    if find3(value, '"\\s\\t\\n"'):
+        value = value.replace('"\\s\\t\\n"', ' ' + '|' + '\t' + '|' + '\n')
+    if find3(value, "'+''-'"):
+        value = value.replace("'+''-'", "'+'" + '|' + "'-'")
+    if find3(value, '"0123456789"'):
+        value = value.replace('"0123456789"', numeros)
     newVariables[key] = value
 
 # delete [ and ] from the values
@@ -273,20 +281,91 @@ for key, value in newVariables.items():
 OPERADORES2 = [EPSILON, CONCAT, UNION, STAR, QUESTION,
                PLUS, RIGHT_PARENTHESIS]
 # validate where to add a concatenation operator. Add . after ] if it is not fallow by an operator or the end of the string
-for key, value in newVariables.items():
-    index_iter = 0
-    for index, char in enumerate(value):
+
+
+def validate_concatenation(value):
+    array = []
+    for char in value:
+        array.append(char)
+
+    res = ""
+    while array:
+        char = array.pop(0)
         if char == ')':
-            # check if the next char is not the end of the string
-            # print(index)
-            # print(char, value[index + 1])
-            if index_iter + 1 < len(value):
-                if value[index_iter + 1] not in OPERADORES2:
-                    value = value[:index_iter + 1] + \
-                        CONCAT + value[index_iter + 1:]
-                    index_iter += 1
-        index_iter += 1
-    newVariables[key] = value
+            if array:
+                if array[0] not in OPERADORES2:
+                    res += char + CONCAT
+                else:
+                    res += char
+            else:
+                res += char
+        elif char == "'":
+            if array:
+                if len(array) > 3:
+
+                    if array[1] == "'":
+                        if array[2] not in OPERADORES2:
+                            res += char + array.pop(0) + array.pop(0) + CONCAT
+                        else:
+                            res += char + array.pop(0) + array.pop(0)
+        elif char == '*' or char == '?' or char == '+':
+            if array:
+                if array[0] not in OPERADORES2:
+                    res += char + CONCAT
+                else:
+                    res += char
+            else:
+                res += char
+        else:
+            res += char
+    return res
+
+
+for key, value in newVariables.items():
+    newVariables[key] = validate_concatenation(value)
+
+
+# for key, value in newVariables.items():
+#     index_iter = 0
+#     for index, char in enumerate(value):
+#         if char == ')':
+#             # check if the next char is not the end of the string
+#             # print(index)
+#             # print(char, value[index + 1])
+#             if index_iter + 1 < len(value):
+#                 if value[index_iter + 1] not in OPERADORES2:
+#                     value = value[:index_iter + 1] + \
+#                         CONCAT + value[index_iter + 1:]
+#                     index_iter += 1
+#         elif char == '*' or char == '?' or char == '+':
+#             # check if the next char is not the end of the string
+#             # print(index)
+#             # print(char, value[index + 1])
+#             if index_iter + 1 < len(value):
+#                 if value[index_iter + 1] not in OPERADORES2 and value[index_iter + 1] != "'":
+#                     value = value[:index_iter + 1] + \
+#                         CONCAT + value[index_iter + 1:]
+#                     index_iter += 1
+#         elif char == "'":
+#             # check if the next char is not the end of the string
+#             # print(index)
+#             # print(char, value[index + 1])
+#             if index_iter - 1 != -1:
+#                 if value[index_iter - 1] in OPERADORES2 and value[index_iter - 2] == "'":
+#                     if index_iter + 1 < len(value):
+#                         if value[index_iter + 1] not in OPERADORES2:
+#                             value = value[:index_iter + 1] + \
+#                                 CONCAT + value[index_iter + 1:]
+#                             index_iter += 1
+#                     # value = value[:index_iter + 1] + \
+#                     #     CONCAT + value[index_iter + 1:]
+#                     # index_iter += 1
+#                 elif value[index_iter - 1] == 'E' and value[index_iter - 2] == "'":
+#                     value = value[:index_iter + 1] + \
+#                         CONCAT + value[index_iter + 1:]
+#                     index_iter += 1
+#         index_iter += 1
+#     newVariables[key] = value
 
 
 # for key, value in newVariables.items():
@@ -306,11 +385,41 @@ for key, value in newVariables.items():
 
 class Simbolo:
     def __init__(self, simbolo, is_operator=False):
-        self.c_id = simbolo
+        self.val = simbolo
         self.id = ord(simbolo)
+        self.is_operator = is_operator
 
 
 definicion_regular = {}
+
+
+def convert_to_Simbolo(string):
+    array = []
+    for char in string:
+        array.append(char)
+
+    res = []
+    while array:
+        char = array.pop(0)
+        if char == "'":
+            res.append(Simbolo(array.pop(0)))
+            array.pop(0)
+        elif char in OPERADORES:
+            res.append(Simbolo(char, True))
+        else:
+            res.append(Simbolo(char))
+    return res
+
+
+for key, value in newVariables.items():
+    definicion_regular[key] = convert_to_Simbolo(value)
+
+print(newVariables)
+
+# for key, value in definicion_regular.items():
+#     print(key + '\n')
+#     for item in value:
+#         print(item.val, item.is_operator)
 
 # for key, value in newVariables.items() save key in definicion_regular and for every char in value create a Simbolo and save it in definicion_regular[key]
 # if the char is in OPERADORES, but is not surrounded by ' ', then it is an operator, otherwise it is a char
@@ -322,19 +431,149 @@ definicion_regular = {}
 #         else:
 #             definicion_regular[key].append(Simbolo(char))
 
-
 # for key, value in newVariables.items():
 #     definicion_regular[key] = []
 #     index_iter = 0
 #     for index, char in enumerate(value):
-#         if char == "'" and value[index + 1] in OPERADORES an:
-
-#         if char in OPERADORES and value[index - 1] != "'" and value[index + 1] != "'":
+#         if char == "'":
+#             if index_iter + 2 < len(value):
+#                 if value[index_iter + 2] == "'":
+#                     definicion_regular[key].append(Simbolo(value[index_iter + 1]))
+#                     # delete the next 2 chars
+#                     value = value[index_iter + 3:]
+#         elif char in OPERADORES and value[index - 1] != "'" and value[index + 1] != "'":
 #             definicion_regular[key].append(Simbolo(char, True))
+
 #         else:
 #             definicion_regular[key].append(Simbolo(char))
 
-print(newVariables)
 
+def shunting_yard(infix):
+    # precedencia de los operadores
+    precedence = {'|': 1, '.': 2, '?': 3, '*': 3, '+': 3}
+    # pila de operadores
+    stack = []
+    # cola de salida
+    postfix = []
+    for c in infix:
+        # Si se encuentra un ( se agrega a la pila
+        if c.val == '(' and c.is_operator == True:
+            stack.append(c)
+        # Si se encuentra un ) se sacan los operadores de la pila hasta encontrar un (
+        elif c.val == ')' and c.is_operator == True:
+            while stack[-1].val != '(' and stack[-1].is_operator == True:
+                postfix.append(stack.pop())
+            stack.pop()
+        # Si se encuentra un operador se sacan los operadores de la pila hasta encontrar un operador de menor precedencia
+        elif c.val in precedence and c.is_operator == True:
+            while stack and stack[-1].val != '(' and stack[-1].is_operator == True and precedence[c.val] <= precedence[stack[-1].val]:
+                postfix.append(stack.pop())
+            stack.append(c)
+        # Si se encuentra un simbolo se agrega a la cola de salida
+        else:
+            postfix.append(c)
+    # Se sacan los operadores restantes de la pila y se agregan a la cola de salida
+    while stack:
+        postfix.append(stack.pop())
+
+    return postfix
+
+
+definicion_regular_postfix = {}
+for key, value in definicion_regular.items():
+    definicion_regular_postfix[key] = shunting_yard(value)
+
+# for key, value in definicion_regular_postfix.items():
+#     print(key + '\n')
+#     for item in value:
+#         print(item.val, item.is_operator)
+
+
+class Node:
+    def __init__(self, data):
+        self.id = id(self)
+        self.data = data
+        self.left = None
+        self.right = None
+
+# La función build_tree crea el árbol de expresiones regulares a partir de una expresión regular en notación postfija
+
+
+def build_tree(postfix):
+    # Se crea una pila vacía
+    stack = []
+    # Se recorre la expresión regular
+    for c in postfix:
+        # Si se encuentra un simbolo alfanumerico se crea un nodo con el simbolo y se agrega a la pila
+        if not c.is_operator:
+            print(c.val, c.is_operator)
+            stack.append(Node(c))
+        # Si se encuentra un operador unario se crea un nodo con el operador y se saca un nodo de la pila y se agrega como hijo del nodo creado
+        elif c.val == '*' or c.val == '?' or c.val == '+':
+            node = Node(c)
+            node.left = stack.pop()
+            stack.append(node)
+        # Si se encuentra un operador se crea un nodo con el operador y se sacan los dos nodos de la pila y se agregan como hijos del nodo creado
+        else:
+            node = Node(c)
+            node.right = stack.pop()
+            node.left = stack.pop()
+            stack.append(node)
+    return stack.pop()
+
+
+# numeros = definicion_regular_postfix['id']
+# arbol_numeros = build_tree(numeros)
+
+# La función draw_tree crea un arbol a partir de un nodo raiz de una expresión regular en notación postfija
+
+
+def draw_tree(root):
+    # Se crea un grafo dirigido
+    dot = graphviz.Digraph()
+    # Se recorre el árbol de expresiones regulares
+
+    def traverse(node):
+        # Si el nodo no es nulo se crea un nodo con el id del nodo y el dato del nodo y se agregan las aristas correspondientes
+        if node:
+            dot.node(str(id(node)), node.data.val)
+            # Si el nodo tiene un hijo izquierdo se crea una arista entre el nodo y el hijo izquierdo
+            if node.left:
+                dot.edge(str(id(node)), str(id(node.left)))
+            # Si el nodo tiene un hijo derecho se crea una arista entre el nodo y el hijo derecho
+            if node.right:
+                dot.edge(str(id(node)), str(id(node.right)))
+            # Se recorre el hijo izquierdo y el hijo derecho utilizando recursividad
+            traverse(node.left)
+            traverse(node.right)
+
+    traverse(root)
+    return dot
+
+
+def show_tree(postfix, nombre):
+    tree = build_tree(postfix)
+    dot = draw_tree(tree)
+    dot.format = 'png'
+    dot.render('arboles/' + nombre, view=False)
+
+
+# dot = draw_tree(arbol_numeros)
+# show_tree(definicion_regular_postfix['number'], 'number')
+
+for key, value in definicion_regular_postfix.items():
+    show_tree(value, key)
+
+# org = definicion_regular['number']
+# val0 = []
+# for item in org:
+#     val0.append([item.val, item.is_operator])
+# val = definicion_regular_postfix['number']
+# r = []
+# for item in val:
+#     r.append([item.val, item.is_operator])
+
+# print(val0)
+# print(r)
 
 # print(content)
