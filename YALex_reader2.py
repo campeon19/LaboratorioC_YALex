@@ -124,37 +124,8 @@ while 'let' in content:
         content = content[find2(content, 'let '):]
 
 newVariables = {}
-
-# if a variable has a value that is a variable, then replace the variable with the value of the variable.
-# it must search for the variable name concidering that it can appear in the middle of the string
-# for example: variable + '+'
-
 keys_array = list(variables.keys())
-# keys_array = reversed(keys_array)
 
-# for value in variables.values():
-#     # name = ''
-#     for key in keys_array:
-#         if find3(value, key):
-#             value = value.replace(key, variables[key])
-#             # name = key
-#     newVariables[name] = value
-
-# function to replace a string with another string in a string (like .replace but withouth using it)
-
-
-# def replace(string, string_to_replace, string_to_replace_with):
-#     result = ""
-#     for index, char in enumerate(string):
-#         print(string)
-#         if string[index:index + len(string_to_replace)] == string_to_replace:
-#             result += string_to_replace_with
-#             for i in range(len(string_to_replace) - 1):
-#                 string = string[:index + 1] + string[index + 2:]
-#             print(string)
-#         else:
-#             result += char
-#     return result
 
 def find4(string, index, string_to_find):
     for i in range(index, len(string)):
@@ -190,28 +161,10 @@ def my_replace(original_str, old_substring, new_substring):
     return result_str
 
 
-# for key, value in variables.items():
-#     for key2 in keys_array:
-#         if find3(value, key2):
-#             value = value.replace(key2, variables[key2])
-#             # name = key
-#     newVariables[key] = value
-
-
 # check if a string contains another string, but it cant be followed by a letter or a number
 arr = ['(', ')', '[', ']', '{', '}', ',', ';', ':', '+', '-',
        '*', '/', '%', '=', '<', '>', '!', '&', '|', '^', '~', ' ']
 
-
-# def find5(string, _string):
-#     for index, char in enumerate(string):
-#         if string[index:index + len(_string)] == _string:
-#             print(string[index:index + len(_string) + 1])
-#             if (index + len(_string) + 1) < len(string):
-#                 print(string[index + len(_string)])
-#                 if string[index + len(_string)] in arr:
-#                     return True
-#     return False
 
 def find_replace(string, string_to_replace, string_to_replace_with):
     # dividir el string original en un array de strings
@@ -242,9 +195,6 @@ def find_replace(string, string_to_replace, string_to_replace_with):
 
 for key, value in variables.items():
     for key2 in keys_array:
-        # if find5(value, key2):
-        #     value = my_replace(value, key2, variables[key2])
-        #     # name = key
         value = find_replace(value, key2, variables[key2])
     variables[key] = value
     newVariables[key] = value
@@ -325,64 +275,6 @@ for key, value in newVariables.items():
     newVariables[key] = validate_concatenation(value)
 
 
-# for key, value in newVariables.items():
-#     index_iter = 0
-#     for index, char in enumerate(value):
-#         if char == ')':
-#             # check if the next char is not the end of the string
-#             # print(index)
-#             # print(char, value[index + 1])
-#             if index_iter + 1 < len(value):
-#                 if value[index_iter + 1] not in OPERADORES2:
-#                     value = value[:index_iter + 1] + \
-#                         CONCAT + value[index_iter + 1:]
-#                     index_iter += 1
-#         elif char == '*' or char == '?' or char == '+':
-#             # check if the next char is not the end of the string
-#             # print(index)
-#             # print(char, value[index + 1])
-#             if index_iter + 1 < len(value):
-#                 if value[index_iter + 1] not in OPERADORES2 and value[index_iter + 1] != "'":
-#                     value = value[:index_iter + 1] + \
-#                         CONCAT + value[index_iter + 1:]
-#                     index_iter += 1
-#         elif char == "'":
-#             # check if the next char is not the end of the string
-#             # print(index)
-#             # print(char, value[index + 1])
-#             if index_iter - 1 != -1:
-#                 if value[index_iter - 1] in OPERADORES2 and value[index_iter - 2] == "'":
-#                     if index_iter + 1 < len(value):
-#                         if value[index_iter + 1] not in OPERADORES2:
-#                             value = value[:index_iter + 1] + \
-#                                 CONCAT + value[index_iter + 1:]
-#                             index_iter += 1
-#                     # value = value[:index_iter + 1] + \
-#                     #     CONCAT + value[index_iter + 1:]
-#                     # index_iter += 1
-#                 elif value[index_iter - 1] == 'E' and value[index_iter - 2] == "'":
-#                     value = value[:index_iter + 1] + \
-#                         CONCAT + value[index_iter + 1:]
-#                     index_iter += 1
-#         index_iter += 1
-#     newVariables[key] = value
-
-
-# for key, value in newVariables.items():
-#     for char in value:
-#         if char in alfabeto_mayusculas + alfabeto_minusculas + numeros:
-#             if value[value.index(char) - 1] not in alfabeto_mayusculas + alfabeto_minusculas + numeros + ')':
-#                 value = value[:value.index(char)] + \
-#                     CONCAT + value[value.index(char):]
-#             if value[value.index(char) + 1] not in alfabeto_mayusculas + alfabeto_minusculas + numeros + '(':
-#                 value = value[:value.index(char) + 1] + \
-#                     CONCAT + value[value.index(char) + 1:]
-#     newVariables[key] = value
-
-# delete [ and ] from the values
-# for key, value in newVariables.items():
-
-
 class Simbolo:
     def __init__(self, simbolo, is_operator=False):
         self.val = simbolo
@@ -415,37 +307,6 @@ for key, value in newVariables.items():
     definicion_regular[key] = convert_to_Simbolo(value)
 
 print(newVariables)
-
-# for key, value in definicion_regular.items():
-#     print(key + '\n')
-#     for item in value:
-#         print(item.val, item.is_operator)
-
-# for key, value in newVariables.items() save key in definicion_regular and for every char in value create a Simbolo and save it in definicion_regular[key]
-# if the char is in OPERADORES, but is not surrounded by ' ', then it is an operator, otherwise it is a char
-# for key, value in newVariables.items():
-#     definicion_regular[key] = []
-#     for index, char in enumerate(value):
-#         if char in OPERADORES and value[index - 1] != "'" and value[index + 1] != "'":
-#             definicion_regular[key].append(Simbolo(char, True))
-#         else:
-#             definicion_regular[key].append(Simbolo(char))
-
-# for key, value in newVariables.items():
-#     definicion_regular[key] = []
-#     index_iter = 0
-#     for index, char in enumerate(value):
-#         if char == "'":
-#             if index_iter + 2 < len(value):
-#                 if value[index_iter + 2] == "'":
-#                     definicion_regular[key].append(Simbolo(value[index_iter + 1]))
-#                     # delete the next 2 chars
-#                     value = value[index_iter + 3:]
-#         elif char in OPERADORES and value[index - 1] != "'" and value[index + 1] != "'":
-#             definicion_regular[key].append(Simbolo(char, True))
-
-#         else:
-#             definicion_regular[key].append(Simbolo(char))
 
 
 def shunting_yard(infix):
@@ -522,11 +383,7 @@ def build_tree(postfix):
     return stack.pop()
 
 
-# numeros = definicion_regular_postfix['id']
-# arbol_numeros = build_tree(numeros)
-
 # La función draw_tree crea un arbol a partir de un nodo raiz de una expresión regular en notación postfija
-
 
 def draw_tree(root):
     # Se crea un grafo dirigido
