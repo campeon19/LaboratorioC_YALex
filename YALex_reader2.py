@@ -123,6 +123,43 @@ while 'let' in content:
         variables[name] = value
         content = content[find2(content, 'let '):]
 
+rule_tokens = []
+while content != '':
+    if find3(content, 'rule tokens'):
+        index = find2(content, 'rule tokens')
+        content = content[index + 11:]
+        rule = content[find(content, '=') + 1:find(content, '|')]
+        rule = delete_white_spaces2(rule)
+        rule_tokens.append(rule)
+        content = content[find(content, '|') + 1:]
+    elif find3(content, '|'):
+        rule = content[:find(content, '|')]
+        rule = delete_white_spaces2(rule)
+        rule_tokens.append(rule)
+        content = content[find(content, '|') + 1:]
+    else:
+        rule = content
+        rule = delete_white_spaces2(rule)
+        rule_tokens.append(rule)
+        content = ''
+
+# print(rule_tokens)
+# separate content in {} and save it in tuples content in rule_tokens
+tuples = []
+for rule in rule_tokens:
+    if '{' in rule:
+        tuples.append(
+            (rule[:find(rule, '{')], rule[find(rule, '{') + 1:find(rule, '}')]))
+    else:
+        tuples.append((rule, ''))
+# print(tuples)
+
+# save the first part of the tuples in rule_tokens
+rule_tokens = []
+for rule in tuples:
+    rule_tokens.append(delete_white_spaces2(rule[0]))
+print(rule_tokens)
+
 newVariables = {}
 keys_array = list(variables.keys())
 
@@ -232,6 +269,23 @@ OPERADORES2 = [EPSILON, CONCAT, UNION, STAR, QUESTION,
                PLUS, RIGHT_PARENTHESIS]
 # validate where to add a concatenation operator. Add . after ] if it is not fallow by an operator or the end of the string
 
+new_rule_tokens = []
+for rule in rule_tokens:
+    for key, value in newVariables.items():
+        if rule == key:
+            rule = value
+    new_rule_tokens.append(rule)
+
+# print(new_rule_tokens)
+
+rule_token_regex = ""
+for rule in new_rule_tokens:
+    # if find3(rule, '( |\t|\n)'):
+    #     rule = my_replace(rule, "( |\t|\n)", "( |\t|\n)")
+    rule_token_regex += rule
+
+# print(rule_token_regex)
+
 
 def validate_concatenation(value):
     array = []
@@ -251,13 +305,26 @@ def validate_concatenation(value):
                 res += char
         elif char == "'":
             if array:
-                if len(array) > 3:
-
+                if len(array) >= 3:
                     if array[1] == "'":
                         if array[2] not in OPERADORES2:
                             res += char + array.pop(0) + array.pop(0) + CONCAT
                         else:
                             res += char + array.pop(0) + array.pop(0)
+                elif len(array) == 2:
+                    if array[1] == "'":
+                        res += char + array.pop(0) + array.pop(0)
+        elif char == '"':
+            if array:
+                if len(array) > 2:
+                    if array[2] == '"':
+                        if array[2] not in OPERADORES2:
+                            res += char + \
+                                array.pop(0) + array.pop(0) + \
+                                array.pop(0) + CONCAT
+                        else:
+                            res += char + \
+                                array.pop(0) + array.pop(0) + array.pop(0)
         elif char == '*' or char == '?' or char == '+':
             if array:
                 if array[0] not in OPERADORES2:
@@ -274,11 +341,14 @@ def validate_concatenation(value):
 for key, value in newVariables.items():
     newVariables[key] = validate_concatenation(value)
 
+rule_token_regex = validate_concatenation(rule_token_regex)
+print(rule_token_regex)
+
 
 class Simbolo:
     def __init__(self, simbolo, is_operator=False):
         self.val = simbolo
-        self.id = ord(simbolo)
+        # self.id = ord(simbolo)
         self.is_operator = is_operator
 
 
@@ -303,8 +373,31 @@ def convert_to_Simbolo(string):
     return res
 
 
+def convert_to_Simbolo2(string):
+    array = []
+    for char in string:
+        array.append(char)
+
+    res = []
+    while array:
+        char = array.pop(0)
+        if char == "'":
+            res.append(Simbolo(array.pop(0)))
+            array.pop(0)
+        elif char == '"':
+            res.append(Simbolo(array.pop(0) + array.pop(0)))
+            array.pop(0)
+        elif char in OPERADORES:
+            res.append(Simbolo(char, True))
+        else:
+            res.append(Simbolo(char))
+    return res
+
+
 for key, value in newVariables.items():
     definicion_regular[key] = convert_to_Simbolo(value)
+
+rule_token_regex = convert_to_Simbolo2(rule_token_regex)
 
 print(newVariables)
 
@@ -343,6 +436,8 @@ def shunting_yard(infix):
 definicion_regular_postfix = {}
 for key, value in definicion_regular.items():
     definicion_regular_postfix[key] = shunting_yard(value)
+
+rule_token_regex_postfix = shunting_yard(rule_token_regex)
 
 # for key, value in definicion_regular_postfix.items():
 #     print(key + '\n')
@@ -418,19 +513,19 @@ def show_tree(postfix, nombre):
 # dot = draw_tree(arbol_numeros)
 # show_tree(definicion_regular_postfix['number'], 'number')
 
-for key, value in definicion_regular_postfix.items():
-    show_tree(value, key)
-
+# for key, value in definicion_regular_postfix.items():
+#     show_tree(value, key)
+show_tree(rule_token_regex_postfix, 'rule_token_regex')
 # org = definicion_regular['number']
 # val0 = []
 # for item in org:
 #     val0.append([item.val, item.is_operator])
 # val = definicion_regular_postfix['number']
 # r = []
-# for item in val:
+# for item in rule_token_regex_postfix:
 #     r.append([item.val, item.is_operator])
 
-# print(val0)
+# # print(val0)
 # print(r)
 
 # print(content)
