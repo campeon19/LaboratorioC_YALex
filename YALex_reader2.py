@@ -134,6 +134,7 @@ while 'let' in content:
         content = content[find2(content, 'let '):]
 
 # guardar cada token dentro de la seccion de rule tokens
+# print(variables)
 
 rule_tokens = []
 while content != '':
@@ -164,13 +165,15 @@ for rule in rule_tokens:
             (rule[:find(rule, '{')], rule[find(rule, '{') + 1:find(rule, '}')]))
     else:
         tuples.append((rule, ''))
+
 # print(tuples)
 
 # guardar en una lista los tokens de la tupla sin el {return}
 rule_tokens = []
 for rule in tuples:
     rule_tokens.append(delete_white_spaces2(rule[0]))
-print(rule_tokens)
+
+# print(rule_tokens)
 
 newVariables = {}
 keys_array = list(variables.keys())
@@ -426,7 +429,11 @@ def convert_to_Simbolo2(string):
     return res
 
 
-# convertir la cadena a un arreglo de simbolos
+# convertir cada variable a un arreglo de simbolos
+for key, value in newVariables.items():
+    definicion_regular[key] = convert_to_Simbolo(value)
+
+# convertir la cadena rule token a un arreglo de simbolos
 rule_token_regex = convert_to_Simbolo2(rule_token_regex)
 
 # print(newVariables)
@@ -543,6 +550,7 @@ def show_tree(postfix, nombre):
 
 
 # aplicar la funcion show_tree a cada variable
+print('Arboles de expresiones regulares')
 for key, value in definicion_regular_postfix.items():
     show_tree(value, key)
 
