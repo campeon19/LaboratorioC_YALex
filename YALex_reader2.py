@@ -13,12 +13,14 @@ RIGHT_PARENTHESIS = ")"
 OPERADORES = [EPSILON, CONCAT, UNION, STAR, QUESTION,
               PLUS, LEFT_PARENTHESIS, RIGHT_PARENTHESIS]
 
+# abrir el archivo y guardar el contenido en una variable
 with open("slr-4.yal", "r") as file:
     content = file.read()
 
+# funcion para separar una linea en palabras
+
 
 def split(line):
-    # withouth using any library
     result = []
     word = ""
     for char in line:
@@ -29,7 +31,7 @@ def split(line):
             word += char
     result.append(word)
 
-# function to look in string for a char and return the index
+# funcion para buscar un caracter en una cadena y retornar el indice
 
 
 def find(string, char):
@@ -38,7 +40,7 @@ def find(string, char):
             return index
     return -1
 
-# function to look in string for a string given and return the index
+# funcion para buscar un string en una cadena y retornar el indice
 
 
 def find2(string, string_):
@@ -47,7 +49,7 @@ def find2(string, string_):
             return index
     return -1
 
-# function to look in string for a string given and if it is found then return true else return false
+# funcion para buscar un string en una cadena y retornar True o False
 
 
 def find3(string, string_):
@@ -56,7 +58,7 @@ def find3(string, string_):
             return True
     return False
 
-# delete white spaces withouth using any library like re or split or replace
+# borrar espacios en blanco de una cadena
 
 
 def delete_white_spaces(string):
@@ -66,7 +68,7 @@ def delete_white_spaces(string):
             result += char
     return result
 
-# delete white spaces withouth using any library like re or split or replace. But if white spaces are between '' or "" then don't delete them
+# borrar espacio en blanco de una cadena excepto cuando este rodeado de comillas
 
 
 def delete_white_spaces2(string):
@@ -80,21 +82,28 @@ def delete_white_spaces2(string):
         result += char
     return result
 
+# funcion para saber si un caracter es una letra
+
 
 def is_letter(char):
     ascii_val = ord(char)  # Obtener el valor ASCII del caracter
     return (ascii_val >= 65 and ascii_val <= 90) or (ascii_val >= 97 and ascii_val <= 122)
+
+# funcion para saber si un caracter es un numero
 
 
 def is_digit(char):
     ascii_val = ord(char)  # Obtener el valor ASCII del caracter
     return ascii_val >= 48 and ascii_val <= 57
 
+# eliminar comentarios de una cadena
+
 
 while '(*' in content:
     content = content[:find2(content, '(*')] + \
         content[find2(content, "*)") + 2:]
 
+# eliminar saltos de linea de una cadena
 while '\n' in content:
     content = content[:find(content, '\n')] + \
         " " + content[find(content, '\n') + 1:]
@@ -107,6 +116,7 @@ numeros = '0|1|2|3|4|5|6|7|8|9'
 variables = {}
 tokens = {}
 
+# guardar cada expresion regular dentro de la seccion de definicion regular
 while 'let' in content:
     index = find2(content, 'let ')
     content = content[index + 3:]
@@ -122,6 +132,8 @@ while 'let' in content:
         value = delete_white_spaces2(value)
         variables[name] = value
         content = content[find2(content, 'let '):]
+
+# guardar cada token dentro de la seccion de rule tokens
 
 rule_tokens = []
 while content != '':
@@ -144,7 +156,7 @@ while content != '':
         content = ''
 
 # print(rule_tokens)
-# separate content in {} and save it in tuples content in rule_tokens
+# separar en tuplas los tokens que tienen un valor entre llaves {}
 tuples = []
 for rule in rule_tokens:
     if '{' in rule:
@@ -154,7 +166,7 @@ for rule in rule_tokens:
         tuples.append((rule, ''))
 # print(tuples)
 
-# save the first part of the tuples in rule_tokens
+# guardar en una lista los tokens de la tupla sin el {return}
 rule_tokens = []
 for rule in tuples:
     rule_tokens.append(delete_white_spaces2(rule[0]))
@@ -163,12 +175,17 @@ print(rule_tokens)
 newVariables = {}
 keys_array = list(variables.keys())
 
+# funcion para buscar si existe una variable dentro de una cadena dado un indice y retornar el indice de la variable
+
 
 def find4(string, index, string_to_find):
     for i in range(index, len(string)):
         if string[i:i + len(string_to_find)] == string_to_find:
             return i
     return -1
+
+
+# funcion para reemplazar una subcadena por otra en un string
 
 
 def my_replace(original_str, old_substring, new_substring):
@@ -202,6 +219,9 @@ def my_replace(original_str, old_substring, new_substring):
 arr = ['(', ')', '[', ']', '{', '}', ',', ';', ':', '+', '-',
        '*', '/', '%', '=', '<', '>', '!', '&', '|', '^', '~', ' ']
 
+# funcion para reemplazar una subcadena por otra en un string. Se utiliza para buscar dentro del valor de una variable
+# si existe una variable y reemplazarla por su valor
+
 
 def find_replace(string, string_to_replace, string_to_replace_with):
     # dividir el string original en un array de strings
@@ -230,13 +250,14 @@ def find_replace(string, string_to_replace, string_to_replace_with):
     return resultado
 
 
+# reemplazar parte del valor de un item en el diccionario por el valor otro item si existe como llave
 for key, value in variables.items():
     for key2 in keys_array:
         value = find_replace(value, key2, variables[key2])
     variables[key] = value
     newVariables[key] = value
 
-# check for values and if 'A'-'Z' is fount change it to alfabeto_mayusculas, the same for 'a'-'z' and '0'-'9'
+# reemplazar los rangos de los valores por la lista que representa ese rango
 for key, value in newVariables.items():
     if find3(value, "'A'-'Z''a'-'z'"):
         value = my_replace(value, "'A'-'Z''a'-'z'",
@@ -257,7 +278,7 @@ for key, value in newVariables.items():
         value = value.replace('"0123456789"', numeros)
     newVariables[key] = value
 
-# delete [ and ] from the values
+# reemplazar los corchetes por parentesis
 for key, value in newVariables.items():
     if find3(value, '['):
         value = my_replace(value, '[', '(')
@@ -267,24 +288,7 @@ for key, value in newVariables.items():
 
 OPERADORES2 = [EPSILON, CONCAT, UNION, STAR, QUESTION,
                PLUS, RIGHT_PARENTHESIS]
-# validate where to add a concatenation operator. Add . after ] if it is not fallow by an operator or the end of the string
-
-new_rule_tokens = []
-for rule in rule_tokens:
-    for key, value in newVariables.items():
-        if rule == key:
-            rule = value
-    new_rule_tokens.append(rule)
-
-# print(new_rule_tokens)
-
-rule_token_regex = ""
-for rule in new_rule_tokens:
-    # if find3(rule, '( |\t|\n)'):
-    #     rule = my_replace(rule, "( |\t|\n)", "( |\t|\n)")
-    rule_token_regex += rule
-
-# print(rule_token_regex)
+# funcion para encontrar donde es necesario agregar el operador de concatenacion siguiendo ciertas reglas
 
 
 def validate_concatenation(value):
@@ -338,11 +342,35 @@ def validate_concatenation(value):
     return res
 
 
+# para cada variable aplicarle la funcion de concatenacion
 for key, value in newVariables.items():
     newVariables[key] = validate_concatenation(value)
 
-rule_token_regex = validate_concatenation(rule_token_regex)
-print(rule_token_regex)
+# para cada token en la lista, validar si existe una variable que tenga el mismo nombre y reemplazarla por su valor
+new_rule_tokens = []
+for rule in rule_tokens:
+    for key, value in newVariables.items():
+        if rule == key:
+            rule = value
+    new_rule_tokens.append(rule)
+
+# print(new_rule_tokens)
+
+# pasar todos los tokens a una sola cadena
+rule_token_regex = ""
+for rule in new_rule_tokens:
+    # revisar si es el ultimo elemento
+    if rule == new_rule_tokens[-1]:
+        rule_token_regex += rule
+    else:
+        rule_token_regex += rule + '|'
+
+# print(rule_token_regex)
+
+# rule_token_regex = validate_concatenation(rule_token_regex)
+# print(rule_token_regex)
+
+# clase Simbolo para representar cada simbolo de la cadena y saber si es un operador o no
 
 
 class Simbolo:
@@ -353,6 +381,8 @@ class Simbolo:
 
 
 definicion_regular = {}
+
+# funcion para convertir la cadena a un arreglo de simbolos
 
 
 def convert_to_Simbolo(string):
@@ -371,6 +401,8 @@ def convert_to_Simbolo(string):
         else:
             res.append(Simbolo(char))
     return res
+
+# funcion para convertir la cadena a un arreglo de simbolos tomando en cuenta los simbolos de dos caracteres
 
 
 def convert_to_Simbolo2(string):
@@ -394,12 +426,12 @@ def convert_to_Simbolo2(string):
     return res
 
 
-for key, value in newVariables.items():
-    definicion_regular[key] = convert_to_Simbolo(value)
-
+# convertir la cadena a un arreglo de simbolos
 rule_token_regex = convert_to_Simbolo2(rule_token_regex)
 
-print(newVariables)
+# print(newVariables)
+
+# funcion para ordenar el arreglo de objetos Simbolo a notacion postfix
 
 
 def shunting_yard(infix):
@@ -433,16 +465,15 @@ def shunting_yard(infix):
     return postfix
 
 
+# aplicar la funcion shunting_yard a cada variable
 definicion_regular_postfix = {}
 for key, value in definicion_regular.items():
     definicion_regular_postfix[key] = shunting_yard(value)
 
+# aplicar la funcion shunting_yard a los tokens
 rule_token_regex_postfix = shunting_yard(rule_token_regex)
 
-# for key, value in definicion_regular_postfix.items():
-#     print(key + '\n')
-#     for item in value:
-#         print(item.val, item.is_operator)
+# clase nodo para crear el arbol de expresiones regulares
 
 
 class Node:
@@ -452,7 +483,7 @@ class Node:
         self.left = None
         self.right = None
 
-# La función build_tree crea el árbol de expresiones regulares a partir de una expresión regular en notación postfija
+# La función build_tree crea el árbol de expresiones regulares a partir de una expresión regular en notación postfix
 
 
 def build_tree(postfix):
@@ -462,7 +493,6 @@ def build_tree(postfix):
     for c in postfix:
         # Si se encuentra un simbolo alfanumerico se crea un nodo con el simbolo y se agrega a la pila
         if not c.is_operator:
-            print(c.val, c.is_operator)
             stack.append(Node(c))
         # Si se encuentra un operador unario se crea un nodo con el operador y se saca un nodo de la pila y se agrega como hijo del nodo creado
         elif c.val == '*' or c.val == '?' or c.val == '+':
@@ -502,6 +532,8 @@ def draw_tree(root):
     traverse(root)
     return dot
 
+# funcion para crear el arbol, armarlo con graphviz y dibujarlo/guardarlo en la carpeta arboles
+
 
 def show_tree(postfix, nombre):
     tree = build_tree(postfix)
@@ -510,22 +542,9 @@ def show_tree(postfix, nombre):
     dot.render('arboles/' + nombre, view=False)
 
 
-# dot = draw_tree(arbol_numeros)
-# show_tree(definicion_regular_postfix['number'], 'number')
+# aplicar la funcion show_tree a cada variable
+for key, value in definicion_regular_postfix.items():
+    show_tree(value, key)
 
-# for key, value in definicion_regular_postfix.items():
-#     show_tree(value, key)
+# aplicar la funcion show_tree a los tokens
 show_tree(rule_token_regex_postfix, 'rule_token_regex')
-# org = definicion_regular['number']
-# val0 = []
-# for item in org:
-#     val0.append([item.val, item.is_operator])
-# val = definicion_regular_postfix['number']
-# r = []
-# for item in rule_token_regex_postfix:
-#     r.append([item.val, item.is_operator])
-
-# # print(val0)
-# print(r)
-
-# print(content)
