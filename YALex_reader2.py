@@ -108,7 +108,6 @@ while '\n' in content:
     content = content[:find(content, '\n')] + \
         " " + content[find(content, '\n') + 1:]
 
-
 alfabeto_minusculas = 'a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z'
 alfabeto_mayusculas = 'A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z'
 numeros = '0|1|2|3|4|5|6|7|8|9'
@@ -222,6 +221,49 @@ def my_replace(original_str, old_substring, new_substring):
 arr = ['(', ')', '[', ']', '{', '}', ',', ';', ':', '+', '-',
        '*', '/', '%', '=', '<', '>', '!', '&', '|', '^', '~', ' ']
 
+
+def expand_range2(range_str):
+    expanded_str = ""
+    while find(range_str, "-") != -1:
+        index = find(range_str, "-")
+        # i = range(ord(range_str[index-2])+1, ord(range_str[index+2])+1)
+        for j in range(ord(range_str[index-2]), ord(range_str[index+2])+1):
+            # si j es final de linea, solo se agrega el caracter, sino agregar el caracter y |
+            if j == ord(range_str[index+2]):
+                expanded_str += chr(j)
+            else:
+                expanded_str += chr(j) + "|"
+        if range_str[index+4] == "]":
+            range_str = range_str[:index-3] + \
+                expanded_str + range_str[index+4:]
+        else:
+            range_str = range_str[:index-3] + \
+                expanded_str + '|' + range_str[index+4:]
+        expanded_str = ""
+    return range_str
+
+# function to validate if '-' is between two letters or numbers or if it is a simbol in the string
+
+
+def validate_range(range_str):
+    for i in range(len(range_str)):
+        if range_str[i] == "-":
+            if is_letter(range_str[i-2]) and is_letter(range_str[i+2]):
+                continue
+            elif is_digit(range_str[i-2]) and is_digit(range_str[i+2]):
+                continue
+            else:
+                return False
+    return True
+
+
+for key, value in variables.items():
+    if validate_range(value):
+        value = expand_range2(value)
+        variables[key] = value
+
+print(variables)
+
 # funcion para reemplazar una subcadena por otra en un string. Se utiliza para buscar dentro del valor de una variable
 # si existe una variable y reemplazarla por su valor
 
@@ -260,6 +302,7 @@ for key, value in variables.items():
     variables[key] = value
     newVariables[key] = value
 
+
 # reemplazar los rangos de los valores por la lista que representa ese rango
 for key, value in newVariables.items():
     if find3(value, "'A'-'Z''a'-'z'"):
@@ -288,6 +331,7 @@ for key, value in newVariables.items():
     if find3(value, ']'):
         value = my_replace(value, ']', ')')
     newVariables[key] = value
+
 
 OPERADORES2 = [EPSILON, CONCAT, UNION, STAR, QUESTION,
                PLUS, RIGHT_PARENTHESIS]
@@ -349,6 +393,7 @@ def validate_concatenation(value):
 for key, value in newVariables.items():
     newVariables[key] = validate_concatenation(value)
 
+
 # para cada token en la lista, validar si existe una variable que tenga el mismo nombre y reemplazarla por su valor
 new_rule_tokens = []
 for rule in rule_tokens:
@@ -370,16 +415,13 @@ for rule in new_rule_tokens:
 
 # print(rule_token_regex)
 
-# rule_token_regex = validate_concatenation(rule_token_regex)
-# print(rule_token_regex)
-
 # clase Simbolo para representar cada simbolo de la cadena y saber si es un operador o no
 
 
 class Simbolo:
     def __init__(self, simbolo, is_operator=False):
         self.val = simbolo
-        # self.id = ord(simbolo)
+        self.id = ord(simbolo)
         self.is_operator = is_operator
 
 
@@ -420,7 +462,12 @@ def convert_to_Simbolo2(string):
             res.append(Simbolo(array.pop(0)))
             array.pop(0)
         elif char == '"':
-            res.append(Simbolo(array.pop(0) + array.pop(0)))
+            res.append(Simbolo(LEFT_PARENTHESIS, True))
+            res.append(Simbolo(array.pop(0)))
+            res.append(Simbolo(CONCAT, True))
+            res.append(Simbolo(array.pop(0)))
+            res.append(Simbolo(RIGHT_PARENTHESIS, True))
+            # res.append(Simbolo(array.pop(0) + array.pop(0)))
             array.pop(0)
         elif char in OPERADORES:
             res.append(Simbolo(char, True))
@@ -549,10 +596,10 @@ def show_tree(postfix, nombre):
     dot.render('arboles/' + nombre, view=False)
 
 
-# aplicar la funcion show_tree a cada variable
-print('Arboles de expresiones regulares')
+# # aplicar la funcion show_tree a cada variable
+# print('Arboles de expresiones regulares')
 for key, value in definicion_regular_postfix.items():
     show_tree(value, key)
 
-# aplicar la funcion show_tree a los tokens
+# # aplicar la funcion show_tree a los tokens
 show_tree(rule_token_regex_postfix, 'rule_token_regex')
